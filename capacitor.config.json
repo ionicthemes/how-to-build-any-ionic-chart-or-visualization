@@ -1,0 +1,6 @@
+{
+	"appId": "io.ionic.starter",
+	"appName": "build-any-ionic-chart-and-visualization-in-four-easy-steps",
+	"webDir": "www",
+	"bundledWebRuntime": false
+}

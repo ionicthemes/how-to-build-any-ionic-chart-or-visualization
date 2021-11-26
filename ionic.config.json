@@ -1,0 +1,7 @@
+{
+  "name": "build-any-ionic-chart-and-visualization-in-four-easy-steps",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
