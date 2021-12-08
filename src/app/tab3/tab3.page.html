@@ -14,7 +14,6 @@
   </ion-header>
 
   <div style="height: 250px; margin: 20px;">
-    <!-- <canvas style="height: 100%;" baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="lineChartType"></canvas> -->
     <ngx-charts-line-chart hotfix-zero-margin
       [scheme]="colorScheme"
       [results]="lineChartData"
@@ -53,8 +52,8 @@
       <ion-item>
         <ion-label>Data period</ion-label>
         <ion-select formControlName="dataPeriod" placeholder="Select a period of time for the data">
-          <ion-select-option value="november">This month</ion-select-option>
-          <ion-select-option value="october">Last month</ion-select-option>
+          <ion-select-option value="lastWeek">Last Week</ion-select-option>
+          <ion-select-option value="thisWeek">This Week</ion-select-option>
         </ion-select>
       </ion-item>
     </ion-list>

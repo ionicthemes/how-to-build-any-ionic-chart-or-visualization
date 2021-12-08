@@ -26,7 +26,7 @@ export class ChartsDataService {
         break;
     }
 
-    switch (category) {
+    switch (chart) {
       case 'ngx-echarts':
         // if (mergedData !== null) {
 
@@ -42,10 +42,7 @@ export class ChartsDataService {
         break;
       case 'ngx-charts':
         if (mergedData !== null) {
-          return [
-            ...this.formatNgxChartsData(filteredData, 'earnings'),
-            ...this.formatNgxChartsData(filteredData, 'revenue')
-          ];
+          return [this.formatNgxChartsData(mergedData['earnings'], 'earnings'), this.formatNgxChartsData(mergedData['revenue'], 'revenue')];
         } else {
           return this.formatNgxChartsData(filteredData, category);
         }
@@ -66,7 +63,6 @@ export class ChartsDataService {
     //   }
     // ]
 
-    const 
     return [];
   }
 
@@ -76,17 +72,21 @@ export class ChartsDataService {
   }
 
   public formatNgxChartsData(data: Array<number>, category: string): any {
-    const labeledData = data.map((value, index) => {
-      return {
-        value: value,
-        name: CHART_LABELS[index]
-      }
-    });
-    
-    const formattedData = {
-      name: (category === 'earnings') ? 'Earnings' : 'Revenue',
-      series: labeledData
-    };
+    let formattedData = null;
+
+    if (data !== null) {
+      const labeledData = data.map((value, index) => {
+        return {
+          value: value,
+          name: CHART_LABELS[index]
+        }
+      });
+      
+      formattedData = {
+        name: (category === 'earnings') ? 'Earnings' : 'Revenue',
+        series: labeledData
+      };
+    }
 
     return formattedData;
   }

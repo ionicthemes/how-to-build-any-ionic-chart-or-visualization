@@ -2,6 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { LineChartComponent } from '@swimlane/ngx-charts';
 import { curveLinear, curveNatural } from 'd3-shape';
+import { ChartsDataService } from '../charts-data.service';
 
 @Component({
   selector: 'app-tab3',
@@ -11,102 +12,40 @@ import { curveLinear, curveNatural } from 'd3-shape';
 export class Tab3Page {
   @ViewChild(LineChartComponent) chartInstance?: LineChartComponent;
 
-  lineChartOptions = {
-    showXAxis: true,
-    showYAxis: true,
-    showLegend: false,
-    showGridLines: true,
-    showXAxisLabel: false,
-    showYAxisLabel: false,
-    legendPosition: 'right',
-    autoScale: false,
-    curve: curveNatural,
-    roundDomains: true
-  };
-
-  lineChartData = [
-    {
-      name: 'Earnings',
-      series: [
-        {
-          value: 680,
-          name: 'Mon'
-        },
-        {
-          value: 932,
-          name: 'Tue'
-        },
-        {
-          value: 901,
-          name: 'Wed'
-        },
-        {
-          value: 934,
-          name: 'Thu'
-        },
-        {
-          value: 1290,
-          name: 'Fri'
-        },
-        {
-          value: 1330,
-          name: 'Sat'
-        },
-        {
-          value: 1320,
-          name: 'Sun'
-        }
-      ]
-    },
-    {
-      name: 'Revenue',
-      series: [
-        {
-          value: 620,
-          name: 'Mon'
-        },
-        {
-          value: 999,
-          name: 'Tue'
-        },
-        {
-          value: 1003,
-          name: 'Wed'
-        },
-        {
-          value: 1200,
-          name: 'Thu'
-        },
-        {
-          value: 1100,
-          name: 'Fri'
-        },
-        {
-          value: 1200,
-          name: 'Sat'
-        },
-        {
-          value: 1500,
-          name: 'Sun'
-        }
-      ]
-    }
-  ];
-
   colorScheme = {
     domain: ['#035388', '#40c3f7', '#b3ecff', '#52606d', '#127fbf', '#9aa5b1']
   };
 
+  lineChartOptions = {};
+
+  lineChartData = [];
+
   chartControlsGroup: FormGroup;
 
-  constructor() {
+  constructor(public chartsDataService: ChartsDataService) {
+    this.lineChartData = this.chartsDataService.getData('thisWeek', 'all', 'ngx-charts');
+
     this.chartControlsGroup = new FormGroup({
       earningsData: new FormControl(true, Validators.required),
       revenueData: new FormControl(true, Validators.required),
-      // TODO: poner este valor en las options de la chart
       smoothLine: new FormControl(true, Validators.required),
-      dataPeriod: new FormControl('', Validators.required)
+      dataPeriod: new FormControl('thisWeek', Validators.required)
     });
+
+    const isSmooth = this.chartControlsGroup.get('smoothLine').value;
+
+    this.lineChartOptions = {
+      showXAxis: true,
+      showYAxis: true,
+      showLegend: false,
+      showGridLines: true,
+      showXAxisLabel: false,
+      showYAxisLabel: false,
+      legendPosition: 'right',
+      autoScale: false,
+      curve: isSmooth ? curveNatural : curveLinear,
+      roundDomains: true
+    };
 
     this.onChanges();
   }
@@ -122,291 +61,72 @@ export class Tab3Page {
       
     });
 
-    this.chartControlsGroup.get('dataPeriod').valueChanges.subscribe(val => {
-      console.log('dataPeriod', val);
+    this.chartControlsGroup.get('dataPeriod').valueChanges.subscribe(dataPeriod => {
+      console.log('dataPeriod', dataPeriod);
 
-      switch (val) {
-        case 'october':
+      // ? Check what series we should show in the chart
+      const showEarnings = this.chartControlsGroup.get('earningsData').value;
+      const showRevenue = this.chartControlsGroup.get('revenueData').value;
 
-          this.lineChartData = [
-            {
-              name: 'Earnings',
-              series: [
-                {
-                  value: 980,
-                  name: 'Mon'
-                },
-                {
-                  value: 232,
-                  name: 'Tue'
-                },
-                {
-                  value: 601,
-                  name: 'Wed'
-                },
-                {
-                  value: 434,
-                  name: 'Thu'
-                },
-                {
-                  value: 1090,
-                  name: 'Fri'
-                },
-                {
-                  value: 1230,
-                  name: 'Sat'
-                },
-                {
-                  value: 1720,
-                  name: 'Sun'
-                }
-              ]
-            },
-            {
-              name: 'Revenue',
-              series: [
-                {
-                  value: 120,
-                  name: 'Mon'
-                },
-                {
-                  value: 699,
-                  name: 'Tue'
-                },
-                {
-                  value: 1203,
-                  name: 'Wed'
-                },
-                {
-                  value: 1700,
-                  name: 'Thu'
-                },
-                {
-                  value: 1200,
-                  name: 'Fri'
-                },
-                {
-                  value: 1100,
-                  name: 'Sat'
-                },
-                {
-                  value: 1900,
-                  name: 'Sun'
-                }
-              ]
-            }
-          ];
+      const dataCategory = (showEarnings & showRevenue) ? 'all' : (showEarnings ? 'earnings' : (showRevenue ? 'revenue' : null));
 
-          break;
-        case 'november':
+      if (dataCategory !== null) {
+        switch (dataCategory) {
+          case 'all':
+            this.lineChartData = this.chartsDataService.getData(dataPeriod, dataCategory, 'ngx-charts');
 
-          this.lineChartData = [
-            {
-              name: 'Earnings',
-              series: [
-                {
-                  value: 680,
-                  name: 'Mon'
-                },
-                {
-                  value: 932,
-                  name: 'Tue'
-                },
-                {
-                  value: 901,
-                  name: 'Wed'
-                },
-                {
-                  value: 934,
-                  name: 'Thu'
-                },
-                {
-                  value: 1290,
-                  name: 'Fri'
-                },
-                {
-                  value: 1330,
-                  name: 'Sat'
-                },
-                {
-                  value: 1320,
-                  name: 'Sun'
-                }
-              ]
-            },
-            {
-              name: 'Revenue',
-              series: [
-                {
-                  value: 620,
-                  name: 'Mon'
-                },
-                {
-                  value: 999,
-                  name: 'Tue'
-                },
-                {
-                  value: 1003,
-                  name: 'Wed'
-                },
-                {
-                  value: 1200,
-                  name: 'Thu'
-                },
-                {
-                  value: 1100,
-                  name: 'Fri'
-                },
-                {
-                  value: 1200,
-                  name: 'Sat'
-                },
-                {
-                  value: 1500,
-                  name: 'Sun'
-                }
-              ]
-            }
-          ];
+            break;
+          case 'earnings':
+            this.lineChartData = [
+              this.chartsDataService.getData(dataPeriod, dataCategory, 'ngx-charts'),
+              {
+                name: 'Revenue',
+                series: []
+              }
+            ];
 
-          break;
-      
-        default:
-          break;
+            break;
+          case 'revenue':
+            this.lineChartData = [
+              {
+                name: 'Earnings',
+                series: []
+              },
+              this.chartsDataService.getData(dataPeriod, dataCategory, 'ngx-charts')
+            ];
+
+            break;
+        }
       }
     });
 
 
-    // See: https://github.com/apache/echarts/issues/15585
-    // See: https://echarts.apache.org/en/api.html#echartsInstance.setOption
-    // TODO: Esto nos puede servir para la feature de live data
     this.chartControlsGroup.get('earningsData').valueChanges.subscribe(toggleEarningsData => {
       console.log('toggleEarningsData', toggleEarningsData);
 
-      const earningsData = (toggleEarningsData) ? [
-        {
-          value: 680,
-          name: 'Mon'
-        },
-        {
-          value: 932,
-          name: 'Tue'
-        },
-        {
-          value: 901,
-          name: 'Wed'
-        },
-        {
-          value: 934,
-          name: 'Thu'
-        },
-        {
-          value: 1290,
-          name: 'Fri'
-        },
-        {
-          value: 1330,
-          name: 'Sat'
-        },
-        {
-          value: 1320,
-          name: 'Sun'
-        }
-      ] : [];
+      // ? Check what period of data we should show in the chart
+      const dataPeriod = this.chartControlsGroup.get('dataPeriod').value;
 
-      // TODO: emprolijar esto
-      this.lineChartData[0].series = earningsData;
+      const earningsData = (toggleEarningsData) ? this.chartsDataService.getData(dataPeriod, 'earnings', 'ngx-charts').series : [];
+
+      this.lineChartData[0] = {...this.lineChartData[0], series: earningsData};
+
+      // ! Use a shallow copy with destructing to force update (see: https://stackoverflow.com/a/12690181/1116959)
+      this.lineChartData = [...this.lineChartData];
     });
 
     this.chartControlsGroup.get('revenueData').valueChanges.subscribe(toggleRevenueData => {
       console.log('toggleRevenueData', toggleRevenueData);
 
-      const revenueData = (toggleRevenueData) ? [
-        {
-          value: 620,
-          name: 'Mon'
-        },
-        {
-          value: 999,
-          name: 'Tue'
-        },
-        {
-          value: 1003,
-          name: 'Wed'
-        },
-        {
-          value: 1200,
-          name: 'Thu'
-        },
-        {
-          value: 1100,
-          name: 'Fri'
-        },
-        {
-          value: 1200,
-          name: 'Sat'
-        },
-        {
-          value: 1500,
-          name: 'Sun'
-        }
-      ] : [];
+      // ? Check what period of data we should show in the chart
+      const dataPeriod = this.chartControlsGroup.get('dataPeriod').value;
 
-      // TODO: emprolijar esto
-      // ! No esta funcionando por como se asigna el objeto. Ver si con un operador de objeto funciona mejor o no
-      // ! Capaz una sallow copy con destructing funciona (see: https://stackoverflow.com/a/12690181/1116959)
-      let newData = new Array();
-      newData = this.lineChartData;
-      newData[1] = {...newData[1], series: revenueData};
+      const revenueData = (toggleRevenueData) ? this.chartsDataService.getData(dataPeriod, 'revenue', 'ngx-charts').series : [];
 
-      // debugger;
+      this.lineChartData[1] = {...this.lineChartData[1], series: revenueData};
 
-      // this.lineChartData = [
-      //   {
-      //     name: 'Earnings',
-      //     series: [
-      //       {
-      //         value: 680,
-      //         name: 'Mon'
-      //       },
-      //       {
-      //         value: 932,
-      //         name: 'Tue'
-      //       },
-      //       {
-      //         value: 901,
-      //         name: 'Wed'
-      //       },
-      //       {
-      //         value: 934,
-      //         name: 'Thu'
-      //       },
-      //       {
-      //         value: 1290,
-      //         name: 'Fri'
-      //       },
-      //       {
-      //         value: 1330,
-      //         name: 'Sat'
-      //       },
-      //       {
-      //         value: 1320,
-      //         name: 'Sun'
-      //       }
-      //     ]
-      //   },
-      //   {
-      //     name: 'Revenue',
-      //     series: [
-            
-      //     ]
-      //   }
-      // ];
-
-      this.lineChartData = [...newData];
-      // this.lineChartData.pop();
-      // this.lineChartData.push(newData[1]);
-      // this.lineChartData = [];
+      // ! Use a shallow copy with destructing to force update (see: https://stackoverflow.com/a/12690181/1116959)
+      this.lineChartData = [...this.lineChartData];
     });
   }
 
