@@ -1,10 +1,11 @@
 import { IonicModule } from '@ionic/angular';
-import { RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Tab2Page } from './tab2.page';
-import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
+
+// chart.js - lib: https://github.com/valor-software/ng2-charts
+import { NgChartsModule } from 'ng2-charts';
 
 import { Tab2PageRoutingModule } from './tab2-routing.module';
 
@@ -13,8 +14,9 @@ import { Tab2PageRoutingModule } from './tab2-routing.module';
     IonicModule,
     CommonModule,
     FormsModule,
-    ExploreContainerComponentModule,
-    Tab2PageRoutingModule
+    ReactiveFormsModule,
+    Tab2PageRoutingModule,
+    NgChartsModule
   ],
   declarations: [Tab2Page]
 })

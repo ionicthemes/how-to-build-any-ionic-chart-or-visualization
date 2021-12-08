@@ -1,9 +1,11 @@
 import { IonicModule } from '@ionic/angular';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Tab1Page } from './tab1.page';
-import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
+
+// echarts - lib: https://github.com/xieziyu/ngx-echarts
+import { NgxEchartsModule } from 'ngx-echarts';
 
 import { Tab1PageRoutingModule } from './tab1-routing.module';
 
@@ -12,7 +14,15 @@ import { Tab1PageRoutingModule } from './tab1-routing.module';
     IonicModule,
     CommonModule,
     FormsModule,
-    ExploreContainerComponentModule,
+    ReactiveFormsModule,
+    NgxEchartsModule.forRoot({
+      /**
+       * This will import all modules from echarts.
+       * If you only need custom modules,
+       * please refer to [Custom Build] section.
+       */
+      echarts: () => import('echarts'),
+    }),
     Tab1PageRoutingModule
   ],
   declarations: [Tab1Page]

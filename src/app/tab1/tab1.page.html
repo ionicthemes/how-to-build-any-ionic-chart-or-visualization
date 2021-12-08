@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>
-      Tab 1
+      ngx-echarts
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -9,9 +9,57 @@
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
+      <ion-title size="large">ngx-echarts</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+  <!-- <app-explore-container name="Tab 1 page"></app-explore-container> -->
+  <!-- <ngx-charts-line-chart *ngIf="isBrowser" -->
+  <!-- <ngx-charts-line-chart
+    [scheme]="colorScheme"
+    [results]="lineChartData"
+    [legendPosition]="lineChartOptions.legendPosition"
+    [xAxis]="lineChartOptions.showXAxis"
+    [yAxis]="lineChartOptions.showYAxis"
+    [legend]="lineChartOptions.showLegend"
+    [showXAxisLabel]="lineChartOptions.showXAxisLabel"
+    [showYAxisLabel]="lineChartOptions.showYAxisLabel"
+    [roundDomains]="lineChartOptions.roundDomains"
+    [autoScale]="lineChartOptions.autoScale"
+    [showGridLines]="lineChartOptions.showGridLines">
+  </ngx-charts-line-chart> -->
+  <div style="height: 300px; padding: 20px;">
+    <div style="height: 100%;" echarts [options]="multipleLineChartOption" (chartInit)="onChartInit($event)"></div>
+  </div>
+  <!-- <div echarts [options]="multipleLineChartOption" [theme]="customEChartsTheme"></div> -->
+
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+
+  <form [formGroup]="chartControlsGroup">
+    <ion-list>
+      <ion-item>
+        <ion-label>Earnings</ion-label>
+        <ion-checkbox slot="end" formControlName="earningsData"></ion-checkbox>
+      </ion-item>
+      <ion-item>
+        <ion-label>Revenue</ion-label>
+        <ion-checkbox slot="end" formControlName="revenueData"></ion-checkbox>
+      </ion-item>
+      <ion-item>
+        <ion-label>Smooth</ion-label>
+        <ion-toggle formControlName="smoothLine"></ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-label>Data period</ion-label>
+        <ion-select formControlName="dataPeriod" placeholder="Select a period of time for the data">
+          <ion-select-option value="november">This month</ion-select-option>
+          <ion-select-option value="october">Last month</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-list>
+  </form>
+
 </ion-content>
