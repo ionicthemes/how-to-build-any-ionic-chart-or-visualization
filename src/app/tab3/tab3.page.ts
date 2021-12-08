@@ -23,8 +23,6 @@ export class Tab3Page {
   chartControlsGroup: FormGroup;
 
   constructor(public chartsDataService: ChartsDataService) {
-    this.lineChartData = this.chartsDataService.getData('thisWeek', 'all', 'ngx-charts');
-
     this.chartControlsGroup = new FormGroup({
       earningsData: new FormControl(true, Validators.required),
       revenueData: new FormControl(true, Validators.required),
@@ -46,6 +44,18 @@ export class Tab3Page {
       curve: isSmooth ? curveNatural : curveLinear,
       roundDomains: true
     };
+
+    // ? Check what series we should show in the chart
+    const showEarnings = this.chartControlsGroup.get('earningsData').value;
+    const showRevenue = this.chartControlsGroup.get('revenueData').value;
+    // ? Check what period of data we should show in the chart
+    const dataPeriod = this.chartControlsGroup.get('dataPeriod').value;
+
+    const dataCategory = (showEarnings & showRevenue) ? 'all' : (showEarnings ? 'earnings' : (showRevenue ? 'revenue' : null));
+
+    if (dataCategory !== null && dataPeriod) {
+      this.lineChartData = this.chartsDataService.getData(dataPeriod, dataCategory, 'ngx-charts');
+    }
 
     this.onChanges();
   }
