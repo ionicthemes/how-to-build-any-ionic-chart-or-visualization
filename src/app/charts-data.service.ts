@@ -28,12 +28,11 @@ export class ChartsDataService {
 
     switch (chart) {
       case 'ngx-echarts':
-        // if (mergedData !== null) {
-
-        // } else {
-
-        // }
-        // return this.formatNgxEchartsData(filteredData, period, category);
+        if (mergedData !== null) {
+          return [this.formatNgxEchartsData(mergedData['earnings'], 'earnings'), this.formatNgxEchartsData(mergedData['revenue'], 'revenue')];
+        } else {
+          return this.formatNgxEchartsData(filteredData, category);
+        }
 
         break;
       case 'ng2-charts':
@@ -59,15 +58,13 @@ export class ChartsDataService {
     }
   }
 
-  public formatNgxEchartsData(data: any, period: string, category: string): Array<any> {
-    // series: [
-    //   {
-    //     id: 'revenue',
-    //     data: [620, 999, 1003, 1200, 1100, 1200, 1500] : [];
-    //   }
-    // ]
+  public formatNgxEchartsData(data: Array<number>, category: string): any {
+    let formattedData = {
+      id: category,
+      data: data
+    };
 
-    return [];
+    return formattedData;
   }
 
   public formatNg2ChartsData(data: Array<number>, category: string): any {

@@ -13,25 +13,9 @@
     </ion-toolbar>
   </ion-header>
 
-  <!-- <app-explore-container name="Tab 1 page"></app-explore-container> -->
-  <!-- <ngx-charts-line-chart *ngIf="isBrowser" -->
-  <!-- <ngx-charts-line-chart
-    [scheme]="colorScheme"
-    [results]="lineChartData"
-    [legendPosition]="lineChartOptions.legendPosition"
-    [xAxis]="lineChartOptions.showXAxis"
-    [yAxis]="lineChartOptions.showYAxis"
-    [legend]="lineChartOptions.showLegend"
-    [showXAxisLabel]="lineChartOptions.showXAxisLabel"
-    [showYAxisLabel]="lineChartOptions.showYAxisLabel"
-    [roundDomains]="lineChartOptions.roundDomains"
-    [autoScale]="lineChartOptions.autoScale"
-    [showGridLines]="lineChartOptions.showGridLines">
-  </ngx-charts-line-chart> -->
   <div style="height: 300px; padding: 20px;">
-    <div style="height: 100%;" echarts [options]="multipleLineChartOption" (chartInit)="onChartInit($event)"></div>
+    <div style="height: 100%;" echarts [options]="lineChartOptions" (chartInit)="onChartInit($event)"></div>
   </div>
-  <!-- <div echarts [options]="multipleLineChartOption" [theme]="customEChartsTheme"></div> -->
 
   <br/>
   <br/>

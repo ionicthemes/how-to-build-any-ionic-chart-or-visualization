@@ -1,15 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ECharts, EChartsOption } from 'echarts';
+import { CHART_LABELS } from '../charts-data';
+import { ChartsDataService } from '../charts-data.service';
 
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss']
 })
-export class Tab1Page implements OnInit {
+export class Tab1Page {
 
-  multipleLineChartOption: EChartsOption = {
+  lineChartOptions: EChartsOption = {
     tooltip : {
       trigger: 'item',
       formatter: '{c}'
@@ -22,7 +24,7 @@ export class Tab1Page implements OnInit {
       axisTick: {
         show: false
       },
-      data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      data: CHART_LABELS,
       splitLine: {
         show: false
       }
@@ -37,35 +39,20 @@ export class Tab1Page implements OnInit {
         show: false
       }
     },
-    // legend: {
-    //   type: 'plain',
-    //   orient: 'horizontal',
-    //   bottom: 0
-    // },
     grid: {
       left: '10%',
       right: '0%'
     },
-    // legend: {
-    //   show: true,
-    //   type: 'plain',
-    //   // orient: 'horizontal',
-    //   // bottom: 0
-    // },
     series: [
       {
         id: 'earnings',
         name: 'Earnings',
-        data: [680, 932, 901, 934, 1290, 1330, 1320],
-        type: 'line',
-        smooth: true
+        type: 'line'
       },
       {
         id: 'revenue',
         name: 'Revenue',
-        data: [620, 999, 1003, 1200, 1100, 1200, 1500],
         type: 'line',
-        smooth: true,
         lineStyle: {
           color: '#CCC',
           type: 'dashed'
@@ -78,150 +65,128 @@ export class Tab1Page implements OnInit {
 
   echartsInstance: ECharts;
 
-  constructor() {
-    
-  }
-
-  ngOnInit() {
+  constructor(
+    public chartsDataService: ChartsDataService
+  ) {
     this.chartControlsGroup = new FormGroup({
       earningsData: new FormControl(true, Validators.required),
       revenueData: new FormControl(true, Validators.required),
-      // TODO: poner este valor en las options de la chart
       smoothLine: new FormControl(true, Validators.required),
-      dataPeriod: new FormControl('', Validators.required)
+      dataPeriod: new FormControl('thisWeek', Validators.required)
     });
 
+    // ? Get initial value to set the curve style
+    const isSmooth = this.chartControlsGroup.get('smoothLine').value;
+
+    this.lineChartOptions.series[0].smooth = isSmooth;
+    this.lineChartOptions.series[1].smooth = isSmooth;
+
+    // ? Check what series we should show in the chart
+    const showEarnings = this.chartControlsGroup.get('earningsData').value;
+    const showRevenue = this.chartControlsGroup.get('revenueData').value;
+    // ? Check what period of data we should show in the chart
+    const dataPeriod = this.chartControlsGroup.get('dataPeriod').value;
+
+    const dataCategory = (showEarnings & showRevenue) ? 'all' : (showEarnings ? 'earnings' : (showRevenue ? 'revenue' : null));
+
+    if (dataCategory !== null && dataPeriod) {
+      const chartData = this.chartsDataService.getData(dataPeriod, dataCategory, 'ngx-echarts');
+
+      this.lineChartOptions.series[0].data = chartData[0].data;
+      this.lineChartOptions.series[1].data = chartData[1].data;
+    }
+
+    // Start listening for changes in the form
     this.onChanges();
   }
 
   // Get Echarts instance: https://github.com/xieziyu/ngx-echarts#echarts-instance
-  onChartInit(ec: ECharts) {
-    this.echartsInstance = ec;
+  onChartInit(chart: ECharts) {
+    this.echartsInstance = chart;
   }
 
   onChanges(): void {
-    // TODO: Mencionar que la forma correcta de hacerlo es con this.echartsInstance.setOption()
-    this.chartControlsGroup.get('smoothLine').valueChanges.subscribe(val => {
-      console.log('smoothLine', val);
-      this.multipleLineChartOption = {
-        ...this.multipleLineChartOption,
+    this.chartControlsGroup.get('smoothLine').valueChanges.subscribe(isSmooth => {
+      console.log('smoothLine', isSmooth);
+
+      this.echartsInstance?.setOption({
         series: [
           {
             id: 'earnings',
-            name: 'Earnings',
-            data: [680, 932, 901, 934, 1290, 1330, 1320],
-            type: 'line',
-            smooth: val
+            smooth: isSmooth
           },
           {
             id: 'revenue',
-            name: 'Revenue',
-            data: [620, 999, 1003, 1200, 1100, 1200, 1500],
-            type: 'line',
-            smooth: val,
-            lineStyle: {
-              color: '#CCC',
-              type: 'dashed'
-            }
+            smooth: isSmooth
           }
         ]
-      };
+      });
     });
 
-    // TODO: Mencionar que la forma correcta de hacerlo es con this.echartsInstance.setOption()
-    this.chartControlsGroup.get('dataPeriod').valueChanges.subscribe(val => {
-      console.log('dataPeriod', val);
+    this.chartControlsGroup.get('dataPeriod').valueChanges.subscribe(dataPeriod => {
+      console.log('dataPeriod', dataPeriod);
 
-      const smoothVal = this.chartControlsGroup.get('smoothLine').value;
+      // ? Check what series we should show in the chart
+      const showEarnings = this.chartControlsGroup.get('earningsData').value;
+      const showRevenue = this.chartControlsGroup.get('revenueData').value;
 
-      switch (val) {
-        case 'october':
+      const dataCategory = (showEarnings & showRevenue) ? 'all' : (showEarnings ? 'earnings' : (showRevenue ? 'revenue' : null));
 
-          this.multipleLineChartOption = {
-            ...this.multipleLineChartOption,
-            series: [
-              {
-                id: 'earnings',
-                name: 'Earnings',
-                data: [980, 232, 601, 434, 1090, 1230, 1720],
-                type: 'line',
-                smooth: smoothVal
-              },
-              {
-                id: 'revenue',
-                name: 'Revenue',
-                data: [120, 699, 1203, 1700, 1200, 1100, 1900],
-                type: 'line',
-                smooth: smoothVal,
-                lineStyle: {
-                  color: '#CCC',
-                  type: 'dashed'
+      if (dataCategory !== null) {
+        const chartData = this.chartsDataService.getData(dataPeriod, dataCategory, 'ngx-echarts');
+
+        switch (dataCategory) {
+          case 'all':
+            this.echartsInstance?.setOption({
+              series: [
+                {
+                  id: 'earnings',
+                  data: chartData[0].data
+                },
+                {
+                  id: 'revenue',
+                  data: chartData[1].data
                 }
-              }
-            ]
-          };
+              ]
+            });
 
-          break;
-        case 'november':
-
-          this.multipleLineChartOption = {
-            ...this.multipleLineChartOption,
-            series: [
-              {
-                id: 'earnings',
-                name: 'Earnings',
-                data: [680, 932, 901, 934, 1290, 1330, 1320],
-                type: 'line',
-                smooth: smoothVal
-              },
-              {
-                id: 'revenue',
-                name: 'Revenue',
-                data: [620, 999, 1003, 1200, 1100, 1200, 1500],
-                type: 'line',
-                smooth: smoothVal,
-                lineStyle: {
-                  color: '#CCC',
-                  type: 'dashed'
+            break;
+          case 'earnings':
+            this.echartsInstance?.setOption({
+              series: [
+                {
+                  id: 'earnings',
+                  data: chartData.data
                 }
-              }
-            ]
-          };
+              ]
+            });
 
-          break;
-      
-        default:
-          break;
+            break;
+          case 'revenue':
+            this.echartsInstance?.setOption({
+              series: [
+                {
+                  id: 'revenue',
+                  data: chartData.data
+                }
+              ]
+            });
+
+            break;
+        }
       }
     });
 
-
     // See: https://github.com/apache/echarts/issues/15585
     // See: https://echarts.apache.org/en/api.html#echartsInstance.setOption
-    // TODO: Esto nos puede servir para la feature de live data
     // Live data, we can also use: https://echarts.apache.org/en/api.html#echartsInstance.appendData
     this.chartControlsGroup.get('earningsData').valueChanges.subscribe(toggleEarningsData => {
       console.log('toggleEarningsData', toggleEarningsData);
 
-      // const smoothVal = this.chartControlsGroup.get('smoothLine').value;
+      // ? Check what period of data we should show in the chart
+      const dataPeriod = this.chartControlsGroup.get('dataPeriod').value;
 
-      // ! Este solo funciona si tenemos activados los legends en las options de la chart
-      // this.echartsInstance.dispatchAction({
-      //   type: 'legendToggleSelect',
-      //   name: 'Earnings'
-      // });
-
-      // ! Este no me funciono
-      // this.echartsInstance.dispatchAction({
-      //   // type: 'toggleSelected',
-      //   type: 'unselect',
-      //   // seriesId: 'earnings',
-      //   // seriesName: 'Earnings',
-      //   name: 'Earnings'
-      // });
-
-
-      const earningsData = (toggleEarningsData) ? [680, 932, 901, 934, 1290, 1330, 1320] : [];
+      const earningsData = (toggleEarningsData) ? this.chartsDataService.getData(dataPeriod, 'earnings', 'ngx-echarts').data : [];
 
       this.echartsInstance.setOption({
         series: [
@@ -236,9 +201,10 @@ export class Tab1Page implements OnInit {
     this.chartControlsGroup.get('revenueData').valueChanges.subscribe(toggleRevenueData => {
       console.log('toggleRevenueData', toggleRevenueData);
 
-      // const smoothVal = this.chartControlsGroup.get('smoothLine').value;
+      // ? Check what period of data we should show in the chart
+      const dataPeriod = this.chartControlsGroup.get('dataPeriod').value;
 
-      const revenueData = (toggleRevenueData) ? [620, 999, 1003, 1200, 1100, 1200, 1500] : [];
+      const revenueData = (toggleRevenueData) ? this.chartsDataService.getData(dataPeriod, 'revenue', 'ngx-echarts').data : [];
 
       this.echartsInstance.setOption({
         series: [
