@@ -22,7 +22,9 @@ export class Tab3Page {
 
   chartControlsGroup: FormGroup;
 
-  constructor(public chartsDataService: ChartsDataService) {
+  constructor(
+    public chartsDataService: ChartsDataService
+  ) {
     this.chartControlsGroup = new FormGroup({
       earningsData: new FormControl(true, Validators.required),
       revenueData: new FormControl(true, Validators.required),
@@ -30,6 +32,7 @@ export class Tab3Page {
       dataPeriod: new FormControl('thisWeek', Validators.required)
     });
 
+    // ? Get initial value to set the curve style
     const isSmooth = this.chartControlsGroup.get('smoothLine').value;
 
     this.lineChartOptions = {
@@ -57,6 +60,7 @@ export class Tab3Page {
       this.lineChartData = this.chartsDataService.getData(dataPeriod, dataCategory, 'ngx-charts');
     }
 
+    // Start listening for changes in the form
     this.onChanges();
   }
 
@@ -109,7 +113,6 @@ export class Tab3Page {
         }
       }
     });
-
 
     this.chartControlsGroup.get('earningsData').valueChanges.subscribe(toggleEarningsData => {
       console.log('toggleEarningsData', toggleEarningsData);
