@@ -37,7 +37,11 @@ export class ChartsDataService {
 
         break;
       case 'ng2-charts':
-        // return this.formatNg2ChartsData(filteredData, period, category);
+        if (mergedData !== null) {
+          return [this.formatNg2ChartsData(mergedData['earnings'], 'earnings'), this.formatNg2ChartsData(mergedData['revenue'], 'revenue')];
+        } else {
+          return this.formatNg2ChartsData(filteredData, category);
+        }
 
         break;
       case 'ngx-charts':
@@ -66,9 +70,13 @@ export class ChartsDataService {
     return [];
   }
 
-  public formatNg2ChartsData(data: any): Array<any> {
-    // [980, 232, 601, 434, 1090, 1230, 1720];
-    return [];
+  public formatNg2ChartsData(data: Array<number>, category: string): any {
+    let formattedData = {
+      label: (category === 'earnings') ? 'Earnings' : 'Revenue',
+      data: data
+    };
+
+    return formattedData;
   }
 
   public formatNgxChartsData(data: Array<number>, category: string): any {

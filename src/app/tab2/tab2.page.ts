@@ -2,6 +2,8 @@ import { Component, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Chart, ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { BaseChartDirective, ThemeService } from 'ng2-charts';
+import { CHART_LABELS } from '../charts-data';
+import { ChartsDataService } from '../charts-data.service';
 
 @Component({
   selector: 'app-tab2',
@@ -12,25 +14,7 @@ export class Tab2Page {
   @ViewChild(BaseChartDirective) chartInstance?: BaseChartDirective;
 
   // * Line Chart
-  public lineChartData: ChartData<'line'> = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        data: [680, 932, 901, 934, 1290, 1330, 1320],
-        borderColor: '#035388',
-        backgroundColor: 'rgba(3,83,136,0.4)',
-        label: 'Earnings'
-      },
-      {
-        data: [620, 999, 1003, 1200, 1100, 1200, 1500],
-        // borderColor: '#035388',
-        // backgroundColor: 'rgba(3,83,136,0.4)',
-        label: 'Revenue'
-        // yAxisID: 'yAxis'
-      }
-      
-    ]
-  };
+  public lineChartData: ChartData<'line'> = null;
 
   public lineChartOptions: ChartConfiguration['options'] = {
     responsive: true,
@@ -40,12 +24,6 @@ export class Tab2Page {
         left: 0,
         bottom: 0,
         right: 0
-      }
-    },
-    elements: {
-      line: {
-        // chart.options.elements.line.tension = smooth ? 0.4 : 0;
-        tension: 0.4
       }
     },
     scales: {
@@ -78,47 +56,76 @@ export class Tab2Page {
       }
     }
   };
+
   public lineChartType: ChartType = 'line';
 
   chartControlsGroup: FormGroup;
 
   constructor(
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    public chartsDataService: ChartsDataService
   ) {
     this.chartControlsGroup = new FormGroup({
       earningsData: new FormControl(true, Validators.required),
       revenueData: new FormControl(true, Validators.required),
-      // TODO: poner este valor en las options de la chart
       smoothLine: new FormControl(true, Validators.required),
-      dataPeriod: new FormControl('', Validators.required)
+      dataPeriod: new FormControl('thisWeek', Validators.required)
     });
 
+    // ? Get initial value to set the curve style
+    const isSmooth = this.chartControlsGroup.get('smoothLine').value;
+
+    this.lineChartOptions = {
+      ...this.lineChartOptions,
+      elements: {
+        line: {
+          tension: isSmooth ? 0.4 : 0
+        }
+      },
+    };
+
+    // ? Check what series we should show in the chart
+    const showEarnings = this.chartControlsGroup.get('earningsData').value;
+    const showRevenue = this.chartControlsGroup.get('revenueData').value;
+    // ? Check what period of data we should show in the chart
+    const dataPeriod = this.chartControlsGroup.get('dataPeriod').value;
+
+    const dataCategory = (showEarnings & showRevenue) ? 'all' : (showEarnings ? 'earnings' : (showRevenue ? 'revenue' : null));
+
+    if (dataCategory !== null && dataPeriod) {
+      const chartData = this.chartsDataService.getData(dataPeriod, dataCategory, 'ng2-charts');
+
+      this.lineChartData = {
+        labels: CHART_LABELS,
+        datasets: [
+          {
+            label: chartData[0].label,
+            data: chartData[0].data,
+            borderColor: '#035388',
+            backgroundColor: 'rgba(3,83,136,0.4)'
+            
+          },
+          {
+            label: chartData[1].label,
+            data: chartData[1].data,
+            // borderColor: '#035388',
+            // backgroundColor: 'rgba(3,83,136,0.4)'
+          }
+          
+        ]
+      };
+    }
+
+    // Set chart theme
     this.setTheme();
 
+    // Start listening for changes in the form
     this.onChanges();
   }
 
   public setTheme() {
     // ? Available Chart.js configuration options here: https://www.chartjs.org/docs/latest/configuration/
     const overrides: ChartConfiguration['options'] = {
-      // scales: {
-      //   x: {
-      //     ticks: {
-      //       color: '#999999'
-      //     },
-      //     grid: {
-      //       color: 'rgba(255,255,255,0.1)'
-      //     }
-      //   },
-      //   y: {
-      //     ticks: {
-      //       color: '#999999'
-      //     },
-      //     grid: {
-      //       color: 'rgba(255,255,255,0.1)'
-      //     }
-      //   }
-      // },
       plugins: {
         legend: {
           labels: {
@@ -147,17 +154,12 @@ export class Tab2Page {
 
     // ? New Chart.js default configurations (see: https://www.chartjs.org/docs/latest/getting-started/v3-migration.html#defaults)
     Chart.defaults.color = '#999999';
-    // Chart.defaults.font = {
-    //   family: 'Nunito, sans-serif'
-    // };
     Chart.defaults.responsive = true;
 
     this.themeService.setColorschemesOptions(overrides);
   }
 
-
-  onChanges(): void {
-    // TODO: Mencionar que la forma correcta de hacerlo es con this.echartsInstance.setOption()
+  public onChanges(): void {
     this.chartControlsGroup.get('smoothLine').valueChanges.subscribe(isSmooth => {
       console.log('smoothLine', isSmooth);
 
@@ -165,50 +167,58 @@ export class Tab2Page {
         ...this.lineChartOptions,
         elements: {
           line: {
-            // chart.options.elements.line.tension = smooth ? 0.4 : 0;
             tension: isSmooth ? 0.4 : 0
           }
         },
       };
     });
 
-    // TODO: Mencionar que la forma correcta de hacerlo es con this.echartsInstance.setOption()
-    this.chartControlsGroup.get('dataPeriod').valueChanges.subscribe(val => {
-      console.log('dataPeriod', val);
+    this.chartControlsGroup.get('dataPeriod').valueChanges.subscribe(dataPeriod => {
+      console.log('dataPeriod', dataPeriod);
 
-      // const smoothVal = this.chartControlsGroup.get('smoothLine').value;
+      // ? Check what series we should show in the chart
+      const showEarnings = this.chartControlsGroup.get('earningsData').value;
+      const showRevenue = this.chartControlsGroup.get('revenueData').value;
 
-      switch (val) {
-        case 'october':
+      const dataCategory = (showEarnings & showRevenue) ? 'all' : (showEarnings ? 'earnings' : (showRevenue ? 'revenue' : null));
 
-          this.lineChartData.datasets[0].data = [980, 232, 601, 434, 1090, 1230, 1720];
-          this.lineChartData.datasets[1].data = [120, 699, 1203, 1700, 1200, 1100, 1900];
+      if (dataCategory !== null) {
+        const chartData = this.chartsDataService.getData(dataPeriod, dataCategory, 'ng2-charts');
 
-          this.chartInstance?.update();
+        switch (dataCategory) {
+          case 'all':
+            this.lineChartData.datasets[0].data = chartData[0].data;
+            this.lineChartData.datasets[1].data = chartData[1].data;
 
-          break;
-        case 'november':
+            break;
+          case 'earnings':
+            this.lineChartData.datasets[0].data = chartData.data;
 
-          this.lineChartData.datasets[0].data = [680, 932, 901, 934, 1290, 1330, 1320];
-          this.lineChartData.datasets[1].data = [620, 999, 1003, 1200, 1100, 1200, 1500];
+            break;
+          case 'revenue':
+            this.lineChartData.datasets[1].data = chartData.data;
 
-          this.chartInstance?.update();
+            break;
+        }
 
-          break;
-      
-        default:
-          break;
+        this.chartInstance?.update();
       }
     });
 
-
-    // See: https://github.com/apache/echarts/issues/15585
-    // See: https://echarts.apache.org/en/api.html#echartsInstance.setOption
-    // TODO: Esto nos puede servir para la feature de live data
     this.chartControlsGroup.get('earningsData').valueChanges.subscribe(toggleEarningsData => {
       console.log('toggleEarningsData', toggleEarningsData);
 
-      // const isHidden = this.chartInstance?.isDatasetHidden(1);
+      // ? Check what period of data we should show in the chart
+      const dataPeriod = this.chartControlsGroup.get('dataPeriod').value;
+
+      // Update data (in case the period changed)
+      if (toggleEarningsData) {
+        const earningsData = this.chartsDataService.getData(dataPeriod, 'earnings', 'ng2-charts');
+
+        this.lineChartData.datasets[0].data = earningsData.data;
+
+        this.chartInstance?.update();
+      }
 
       this.chartInstance?.hideDataset(0, !toggleEarningsData);
     });
@@ -216,9 +226,19 @@ export class Tab2Page {
     this.chartControlsGroup.get('revenueData').valueChanges.subscribe(toggleRevenueData => {
       console.log('toggleRevenueData', toggleRevenueData);
 
+      // ? Check what period of data we should show in the chart
+      const dataPeriod = this.chartControlsGroup.get('dataPeriod').value;
+
+      // Update data (in case the period changed)
+      if (toggleRevenueData) {
+        const revenueData = this.chartsDataService.getData(dataPeriod, 'revenue', 'ng2-charts');
+
+        this.lineChartData.datasets[1].data = revenueData.data;
+
+        this.chartInstance?.update();
+      }
+
       this.chartInstance?.hideDataset(1, !toggleRevenueData);
     });
   }
-
-
 }
