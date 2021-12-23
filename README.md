@@ -12,7 +12,7 @@ The chart example features a line chart with different data sets, and some Ionic
 By default, almost every charting library comes with built-in controls to interact with the chart. This is not bad at all, but when designing a mobile app you can greatly improve the user experience if you own the different pieces of the UI.
 That’s why I believe it’s important to show you how to interact with the chart using Ionic controls instead of the ones built-inside the charting library.
 
-<video src='https://youtu.be/_kNlrXovJsQ' width=300/>
+[![Watch the video](https://i.imgur.com/4sMK1pF.png)](https://youtu.be/_kNlrXovJsQ)
 
 ---
 
